@@ -144,7 +144,10 @@ def get_kpt_items() -> dict[str, Any]:
 
 def archive_page(page_id: str) -> None:
     url = f"https://api.notion.com/v1/pages/{page_id}"
-    payload = {"archived": True}
+
+    payload = {
+        "archived": True
+    }
 
     res = requests.patch(url, headers=notion_headers(), json=payload, timeout=30)
 
