@@ -23,7 +23,11 @@ def root():
     return {
         "service": "KPT AI Manager",
         "status": "running",
-        "endpoints": ["/health", "/kpt/items", "/kpt/reset"],
+        "endpoints": [
+            "/health",
+            "/kpt/items",
+            "/kpt/reset",
+        ],
     }
 
 
@@ -34,9 +38,17 @@ def health():
 
 @app.get("/kpt/items")
 def kpt_items():
+    """Return KPT rows grouped by Keep / Problem / Try."""
     return get_kpt_items()
 
 
+# 브라우저에서 직접 호출할 때
 @app.get("/kpt/reset")
 def kpt_reset():
+    return reset_kpt_board()
+
+
+# 노션 웹훅에서 호출할 때
+@app.post("/kpt/reset")
+def kpt_reset_post():
     return reset_kpt_board()
