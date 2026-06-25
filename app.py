@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from services.notion import get_kpt_items
+from services.notion import get_kpt_items, reset_kpt_board
 
 app = FastAPI(
     title="KPT AI Manager API",
@@ -23,7 +23,7 @@ def root():
     return {
         "service": "KPT AI Manager",
         "status": "running",
-        "endpoints": ["/health", "/kpt/items"],
+        "endpoints": ["/health", "/kpt/items", "/kpt/reset"],
     }
 
 
@@ -34,5 +34,9 @@ def health():
 
 @app.get("/kpt/items")
 def kpt_items():
-    """Return KPT rows grouped by Keep / Problem / Try."""
     return get_kpt_items()
+
+
+@app.get("/kpt/reset")
+def kpt_reset():
+    return reset_kpt_board()
