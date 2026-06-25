@@ -4,8 +4,8 @@ from typing import Any
 import requests
 from fastapi import HTTPException
 
-NOTION_TOKEN = os.getenv("NOTION_TOKEN")
-NOTION_DATA_SOURCE_ID = os.getenv("NOTION_DATA_SOURCE_ID")
+NOTION_TOKEN = (os.getenv("NOTION_TOKEN") or "").strip()
+NOTION_DATA_SOURCE_ID = (os.getenv("NOTION_DATA_SOURCE_ID") or "").strip()
 
 # If this version causes a Notion API error, change to "2022-06-28" and use the legacy database endpoint.
 NOTION_VERSION = "2025-09-03"
