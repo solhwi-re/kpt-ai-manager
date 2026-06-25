@@ -1,0 +1,62 @@
+openapi: 3.1.0
+info:
+  title: KPT AI Manager
+  version: 1.0.0
+servers:
+  - url: https://YOUR-RENDER-URL.onrender.com
+paths:
+  /kpt/items:
+    get:
+      operationId: getKptItems
+      summary: Get KPT items from Notion
+      description: Reads KPT items from the connected Notion data source and returns them grouped by Keep, Problem, and Try.
+      responses:
+        "200":
+          description: KPT items grouped by category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: object
+                    properties:
+                      keep:
+                        type: integer
+                      problem:
+                        type: integer
+                      try:
+                        type: integer
+                      unknown:
+                        type: integer
+                      total:
+                        type: integer
+                  keep:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/KptItem"
+                  problem:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/KptItem"
+                  try:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/KptItem"
+                  unknown:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/KptItem"
+components:
+  schemas:
+    KptItem:
+      type: object
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        manager:
+          type: string
+        complete:
+          type: string
