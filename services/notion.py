@@ -7,8 +7,15 @@ from fastapi import HTTPException
 NOTION_TOKEN = (os.getenv("NOTION_TOKEN") or "").strip()
 NOTION_DATA_SOURCE_ID = (os.getenv("NOTION_DATA_SOURCE_ID") or "").strip()
 
-# If this version causes a Notion API error, change to "2022-06-28" and use the legacy database endpoint.
 NOTION_VERSION = "2025-09-03"
+
+
+def notion_headers() -> dict[str, str]:
+    return {
+        "Authorization": f"Bearer {NOTION_TOKEN}",
+        "Notion-Version": NOTION_VERSION,
+        "Content-Type": "application/json",
+    }
 
 
 def rich_text_to_plain(items: list[dict[str, Any]] | None) -> str:
@@ -60,17 +67,13 @@ def query_data_source() -> list[dict[str, Any]]:
         raise HTTPException(status_code=500, detail="NOTION_DATA_SOURCE_ID is missing")
 
     url = f"https://api.notion.com/v1/data_sources/{NOTION_DATA_SOURCE_ID}/query"
-    headers = {
-        "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Notion-Version": NOTION_VERSION,
-        "Content-Type": "application/json",
-    }
 
     all_results: list[dict[str, Any]] = []
     payload: dict[str, Any] = {"page_size": 100}
 
     while True:
-        res = requests.post(url, headers=headers, json=payload, timeout=30)
+        res = requests.post(url, headers=notion_headers(), json=payload, timeout=30)
+
         if res.status_code >= 400:
             raise HTTPException(
                 status_code=res.status_code,
@@ -82,6 +85,7 @@ def query_data_source() -> list[dict[str, Any]]:
 
         if not data.get("has_more"):
             break
+
         payload["start_cursor"] = data.get("next_cursor")
 
     return all_results
@@ -135,4 +139,37 @@ def get_kpt_items() -> dict[str, Any]:
             "total": len(pages),
         },
         **grouped,
+    }
+
+
+def archive_page(page_id: str) -> None:
+    url = f"https://api.notion.com/v1/pages/{page_id}"
+    payload = {"archived": True}
+
+    res = requests.patch(url, headers=notion_headers(), json=payload, timeout=30)
+
+    if res.status_code >= 400:
+        raise HTTPException(
+            status_code=res.status_code,
+            detail=f"Notion archive error: {res.text}",
+        )
+
+
+def reset_kpt_board() -> dict[str, Any]:
+    pages = query_data_source()
+
+    archived_count = 0
+
+    for page in pages:
+        page_id = page.get("id")
+        if not page_id:
+            continue
+
+        archive_page(page_id)
+        archived_count += 1
+
+    return {
+        "status": "success",
+        "message": "KPT 보드가 초기화되었습니다.",
+        "archived_count": archived_count,
     }
